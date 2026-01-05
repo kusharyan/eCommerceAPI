@@ -47,6 +47,7 @@ namespace eCommerceApi.Repository
 
                 order.Items.Add(new OrderItem
                 {
+                    CustomerId = userId,
                     ProductId = item.ProductId,
                     Quantity = item.Quantity
                 });

@@ -29,7 +29,7 @@ namespace eCommerceApi.Controllers
 
             await _cartRepo.AddToCartAsync(new CartItem
             {
-               UserId = userId,
+               CustomerId = userId,
                ProductId = productId,
                Quantity = quantity 
             });
