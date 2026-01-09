@@ -5,7 +5,7 @@ namespace eCommerceApi.Repository
     public interface ICustomerRepository
     {
         Task<Customer> Add(Customer customer);
-        Task<List<Customer>> GetAllUsers();
-        Task<Customer?> GetUserByIdAsync(int id);
+        Task<List<Customer>> GetAllCustomers();
+        Task<Customer?> GetCustomerByIdAsync(int id);
     }
 }
