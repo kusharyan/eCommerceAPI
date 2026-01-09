@@ -40,6 +40,8 @@ namespace eCommerceApi.Middleware
                 });
             }
 
+            context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+
             return context.Response.WriteAsJsonAsync(new
             {
                 message = "Internal Server Error",
