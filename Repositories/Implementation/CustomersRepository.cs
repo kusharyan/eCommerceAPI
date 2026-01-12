@@ -18,6 +18,9 @@ namespace eCommerceApi.Repository
 
         public async Task<Customer> Add(Customer customer)
         {
+            if(string.IsNullOrWhiteSpace(customer.Email))
+                throw new BadRequestException("Customer Email is required!");
+                
             _logger.LogInformation("New Customer Added Name: {name}, Email: {email}", customer.Name, customer.Email);
             _context.Customers.Add(customer);
             await _context.SaveChangesAsync();
