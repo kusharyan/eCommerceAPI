@@ -25,18 +25,13 @@ namespace eCommerceApi.Controllers
         [HttpGet]
         public async Task<IActionResult> GetCustomers()
         {
-            return Ok(await _repository.GetAllUsers());
+            return Ok(await _repository.GetAllCustomers());
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetCustomerById(int id)
         {
-            var user = await _repository.GetUserByIdAsync(id);
-
-            if (user == null)
-                return NotFound("User not found");
-
-            return Ok(user);
+            return Ok(await _repository.GetCustomerByIdAsync(id));
         }
     }
 }
