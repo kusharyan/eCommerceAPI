@@ -6,6 +6,8 @@ using Microsoft.EntityFrameworkCore;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using Azure.Monitor.OpenTelemetry.Exporter;
+using OpenTelemetry.Metrics;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,11 +15,28 @@ builder.Logging.ClearProviders();
 
 builder.Services.AddOpenTelemetry()
     .WithTracing(tracing =>
+    {
         tracing
             .AddAspNetCoreInstrumentation()
             .AddHttpClientInstrumentation()
-            .AddOtlpExporter()
-    );
+            .AddSqlClientInstrumentation()
+            .AddAzureMonitorTraceExporter(options =>
+            {
+                options.ConnectionString = 
+                    builder.Configuration[""];
+            });
+    })
+    .WithMetrics(metrics =>
+    {
+        metrics 
+            .AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation()
+            .AddAzureMonitorMetricExporter(options =>
+            {
+                options.ConnectionString = 
+                    builder.Configuration[""];
+            });
+    });
 
 builder.Logging.AddOpenTelemetry(options =>
 {
@@ -28,8 +47,7 @@ builder.Logging.AddOpenTelemetry(options =>
     options.IncludeScopes = true;
     options.ParseStateValues = true;
 
-    options.AddConsoleExporter();  
-    options.AddOtlpExporter();
+    options.AddConsoleExporter();
 });
 
 builder.Services.AddControllers();
