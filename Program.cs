@@ -54,24 +54,6 @@ var app = builder.Build();
 
 app.UseMiddleware<GlobalExceptionMiddleware>();
 
-using (var scope = app.Services.CreateScope())
-{
-    Console.WriteLine(">>> MIGRATION STARTING <<<");
-
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
-    try
-    {
-        db.Database.Migrate();
-        Console.WriteLine(">>> MIGRATION SUCCESS <<<");
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine(">>> MIGRATION FAILED <<<");
-        Console.WriteLine(ex.ToString());
-    }
-}
-
 if(app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
