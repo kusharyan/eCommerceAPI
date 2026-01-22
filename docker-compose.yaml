@@ -1,0 +1,28 @@
+version: "3.9"
+
+services:
+  api: 
+    image: kusharyan/ecommerce-api:1.0
+    container_name: ecommerce-api
+    ports:
+      - "5000:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__MySql: "server=mysql;port=3306;database=ecommerce_db;user=root;password=Abcd@$8956"
+    depends_on:
+      - mysql
+
+  mysql:
+    image: mysql:8.0
+    container_name: ecommerce-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: Abcd@$8956
+      MYSQL_DATABASE: ecommerce_db
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+volumes:
+  mysql_data:
