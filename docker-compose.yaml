@@ -8,21 +8,30 @@ services:
       - "5000:8080"
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      ConnectionStrings__MySql: "server=mysql;port=3306;database=ecommerce_db;user=root;password=Abcd@$8956"
+      ConnectionStrings__MySql: "Server=mysql;Port=3306;Database=ecommerce_db;User=appuser;Password=apppass"
     depends_on:
       - mysql
+    networks:
+      - ecommerce-network
 
   mysql:
     image: mysql:8.0
     container_name: ecommerce-mysql
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: Abcd@$8956
+      MYSQL_PASSWORD: apppass
       MYSQL_DATABASE: ecommerce_db
+      MYSQL_USER: appuser
+      MYSQL_ROOT_PASSWORD: dockerdb123
     ports:
       - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+    networks:
+      - ecommerce-network
 
 volumes:
   mysql_data:
+
+networks:
+  ecommerce-network:
