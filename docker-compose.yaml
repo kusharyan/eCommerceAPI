@@ -8,7 +8,9 @@ services:
       - "5000:8080"
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      ConnectionStrings__MySql: "Server=mysql;Port=3306;Database=ecommerce_db;User=appuser;Password=apppass"
+      # Use host's MySQL so the container can access local data. On Windows, host.docker.internal resolves to host.
+      # If you prefer the bundled mysql service below, change this to "Server=mysql;Port=3306;..." or remove the override.
+      ConnectionStrings__MySql: "Server=host.docker.internal;Port=3306;Database=ecommerce_db;User=root;Password=Abcd@$8956;"
     depends_on:
       - mysql
     networks:
