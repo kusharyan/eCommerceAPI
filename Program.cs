@@ -4,6 +4,7 @@ using eCommerceApi.Repository;
 using eCommerceApi.Services;
 using Microsoft.EntityFrameworkCore;
 using OpenTelemetry.Logs;
+using System.Threading;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
@@ -57,7 +58,29 @@ app.UseMiddleware<GlobalExceptionMiddleware>();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.Migrate(); 
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+
+    const int maxAttempts = 12;
+    const int delayMs = 5000;
+    for (int attempt = 1; attempt <= maxAttempts; attempt++)
+    {
+        try
+        {
+            db.Database.Migrate();
+            logger.LogInformation("Database migrated successfully on attempt {Attempt}", attempt);
+            break;
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Database migrate attempt {Attempt} failed", attempt);
+            if (attempt == maxAttempts)
+            {
+                logger.LogError(ex, "All database migration attempts failed");
+                throw;
+            }
+            Thread.Sleep(delayMs);
+        }
+    }
 }
 
 if(app.Environment.IsDevelopment())
