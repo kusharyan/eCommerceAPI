@@ -1,10 +1,11 @@
+using Azure.Monitor.OpenTelemetry.Exporter;
 using eCommerceApi.Data;
 using eCommerceApi.Middleware;
 using eCommerceApi.Repository;
 using eCommerceApi.Services;
 using Microsoft.EntityFrameworkCore;
 using OpenTelemetry.Logs;
-using System.Threading;
+using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
@@ -15,22 +16,41 @@ builder.Logging.ClearProviders();
 builder.Services.AddOpenTelemetry()
     .WithTracing(tracing =>
         tracing
+            .SetResourceBuilder(
+                ResourceBuilder.CreateDefault()
+                .AddService("CustomerAPI")
+            )
             .AddAspNetCoreInstrumentation()
             .AddHttpClientInstrumentation()
-            .AddOtlpExporter()
-    );
+            .AddSqlClientInstrumentation()
+            .AddAzureMonitorTraceExporter(options=>
+            {
+                options.ConnectionString = builder.Configuration.GetConnectionString("AzureConnectionString");
+            })
+    )
+    .WithMetrics(metrics =>
+    {
+        metrics.AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation()
+            .AddAzureMonitorMetricExporter(o =>
+            {
+                o.ConnectionString = builder.Configuration.GetConnectionString("AzureConnectionString");
+            });
+    });
 
 builder.Logging.AddOpenTelemetry(options =>
 {
     options.SetResourceBuilder(
         ResourceBuilder.CreateDefault()
+        .AddService("CustomerAPI")
     );
+    options.AddAzureMonitorLogExporter(options =>
+    {
+        options.ConnectionString = builder.Configuration.GetConnectionString("AzureConnectionString");
+    });
     options.IncludeFormattedMessage = true;
     options.IncludeScopes = true;
     options.ParseStateValues = true;
-
-    options.AddConsoleExporter();  
-    options.AddOtlpExporter();
 });
 
 builder.Services.AddControllers();
@@ -58,34 +78,14 @@ app.UseMiddleware<GlobalExceptionMiddleware>();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-
-    const int maxAttempts = 12;
-    const int delayMs = 5000;
-    for (int attempt = 1; attempt <= maxAttempts; attempt++)
-    {
-        try
-        {
-            db.Database.Migrate();
-            logger.LogInformation("Database migrated successfully on attempt {Attempt}", attempt);
-            break;
-        }
-        catch (Exception ex)
-        {
-            logger.LogWarning(ex, "Database migrate attempt {Attempt} failed", attempt);
-            if (attempt == maxAttempts)
-            {
-                logger.LogError(ex, "All database migration attempts failed");
-                throw;
-            }
-            Thread.Sleep(delayMs);
-        }
-    }
+    db.Database.Migrate(); 
 }
 
 if(app.Environment.IsDevelopment())
+{
     app.UseSwagger();
     app.UseSwaggerUI();
+}
 
 app.UseHttpsRedirection();
 app.MapControllers();
